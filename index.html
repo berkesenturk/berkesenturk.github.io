@@ -169,7 +169,7 @@
       width: 100px;
       height: 100px;
       margin-top: 20px; 
-      
+
       margin-bottom: 10px; /* top-bottom 20px, left-right 10px */
       box-sizing: content-box; /* ensures padding adds outside the box size */
     }
@@ -224,7 +224,8 @@
 
   <div class="right">
     <div class="menu">
-      <button class="tab active" onclick="showContent('experience')">Experience</button>
+      <button class="tab active" onclick="showContent('about')">About</button>
+      <button class="tab" onclick="showContent('experience')">Experience</button>
       <button class="tab" onclick="showContent('education')">Education</button>
     </div>
     <div class="content" id="content"></div>
@@ -269,6 +270,16 @@
           <div style="text-align:right;"><em>2017 – 2021</em></div>
         </div>
       `;
+    } else if (section === 'about') {
+      content.innerHTML = `
+        <h3>About Me</h3>
+        <p>
+          I am a Master's Degree student at Karlsruhe Institute of Technology (KIT) specializing in Remote Sensing and Geoinformatics. My research focuses on the application of AI in renewable energy particularly in wind energy. I am currently working on my Master's thesis at Fraunhofer IEE in Kassel, Germany, where I am developing AI-based approaches for long-term correction of short-term wind measurements.
+        </p>
+        <p>
+          I have a strong background in software development, having worked as a software developer at Inveon, where I developed ERP integrations using .NET Core and Docker. My academic journey includes a Bachelor's degree in Geomatics Engineering from Istanbul Technical University, where I explored tools for spatiotemporal analysis and visualization of climate change data.
+        </p>
+      `;
     } else if (section === 'experience') {
       content.innerHTML = `
         <h3>Work Experience</h3>
@@ -280,7 +291,7 @@
             <em>Topic: Long-term correction of short-term wind measurements using AI-based approaches</em><br>
             <em>Supervisor: Dr. Alexander Basse</em>
             </div>
-          <div style="text-align:right;"><em>Oct 2024 – Present</em></div>
+          <div style="text-align:right;"><em>June 2025 – Present</em></div>
         </div>
         <div style="${entryStyle}">
           <div>
@@ -289,7 +300,7 @@
             <em>Topic: Creation, analysis and evaluation of a raster dataset of calm and clear nights for urban planning purposes under climate change</em>
             <em>Supervisor: Dr. Saskia Buchholz, KU14, DWD</em>
             </div>
-          <div style="text-align:right;"><em>Oct 2024 – Present</em></div>
+          <div style="text-align:right;"><em>Oct 2024 – June 2025</em></div>
         </div>
         <div style="${entryStyle}">
           <div>
@@ -298,7 +309,7 @@
             <em>Topic: Monitoring fog life cycles using geostationary satellite imagery</em><br>
             <em>Supervisor: Dr. Eva Pauli, IMK</em>
           </div>
-          <div style="text-align:right;"><em>Oct 2024 – Present</em></div>
+          <div style="text-align:right;"><em>Oct 2024 – January 2025</em></div>
         </div>
         <hr>
         <div style="${entryStyle}">
@@ -307,7 +318,7 @@
             KIT – Wind Forecasting Lab, Karlsruhe, Germany<br>
             <em>Cloud hole detection using CNNs on SEVIRI satellite imagery</em>
           </div>
-          <div style="text-align:right;"><em>Oct 2024 – Present</em></div>
+          <div style="text-align:right;"><em>Oct 2024 – March 2025</em></div>
         </div>
         <div style="${entryStyle}">
           <div>
