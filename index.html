@@ -140,6 +140,52 @@
       align-items: start;
       margin-bottom: 20px;
     }
+      @media (max-width: 768px) {
+    body {
+      align-items: flex-start;
+      height: auto;
+    }
+    .container {
+      flex-direction: column;
+      height: auto;
+      border-radius: 0;
+    }
+    .left, .right {
+      flex: 1 1 100%;
+      max-height: none;
+      border-radius: 0;
+    }
+    .right {
+      padding: 20px;
+    }
+    .left .contact-info {
+      font-size: 14px;
+    }
+    .left img.profile {
+      width: 120px;
+      height: 120px;
+    }
+    .qr-wrapper {
+      width: 100px;
+      height: 100px;
+      margin-top: 20px; 
+      
+      margin-bottom: 10px; /* top-bottom 20px, left-right 10px */
+      box-sizing: content-box; /* ensures padding adds outside the box size */
+    }
+    .qr-wrapper img {
+      width: 70px;
+      height: 70px;
+    }
+    .menu {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .menu button {
+      font-size: 14px;
+      padding: 8px;
+    }
+  }
   </style>
 </head>
 <body>
