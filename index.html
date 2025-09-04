@@ -247,6 +247,7 @@
       <button class="tab active" onclick="showContent('about')">About</button>
       <button class="tab" onclick="showContent('experience')">Experience</button>
       <button class="tab" onclick="showContent('education')">Education</button>
+      <button class="tab" onclick="showContent('research')">Research & Projects</button>
     </div>
     <div class="content" id="content"></div>
   </div>
@@ -367,7 +368,20 @@
           <div style="text-align:right;"><em>Jun 2020 – Dec 2020</em></div>
         </div>
       `;
-    }
+    } else if (section === 'research') {
+        content.innerHTML = `
+          <h3>Research & Projects</h3>
+          <div style="${entryStyle}">
+            <div>
+              <strong>Poster Presentation: Cloud Hole Detection with CNNs on SEVIRI Satellite Imagery</strong>, Karlsruhe, Germany<br>
+              Helmholtz AI<br>
+              <em>Focus Areas: Atmospheric Remote Sensing, Deep Learning</em>
+            </div>
+            <div style="text-align:right;"><em>2025</em></div>
+          </div>
+          <hr>
+      `;
+      }
   }
 
   window.onload = () => {
