@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2026-02-17T16:47:51+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Berke Şentürk</title><subtitle>AI • Renewable Energy • Atmospheric Science</subtitle><entry><title type="html">Welcome to My Blog</title><link href="http://localhost:4000/blog/2026/02/17/welcome/" rel="alternate" type="text/html" title="Welcome to My Blog" /><published>2026-02-17T00:00:00+01:00</published><updated>2026-02-17T00:00:00+01:00</updated><id>http://localhost:4000/blog/2026/02/17/welcome</id><content type="html" xml:base="http://localhost:4000/blog/2026/02/17/welcome/"><![CDATA[<p>Welcome to my personal blog 👋</p>
+
+<p>Here I’ll share:</p>
+
+<ul>
+  <li>Research insights</li>
+  <li>Energy forecasting projects</li>
+  <li>AI experiments</li>
+  <li>Tutorials</li>
+</ul>]]></content><author><name></name></author><category term="intro" /><category term="research" /><summary type="html"><![CDATA[Introduction to my research, AI projects, and energy forecasting work.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:4000/assets/img/blog/welcome.jpg" /><media:content medium="image" url="http://localhost:4000/assets/img/blog/welcome.jpg" xmlns:media="http://search.yahoo.com/mrss/" /></entry></feed>
