@@ -289,6 +289,16 @@
 
     .card-body { padding: 22px; flex: 1; display: flex; flex-direction: column; }
 
+    .card-series {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 6px;
+      opacity: 0.8;
+    }
+
     .card-meta {
       font-size: 0.75rem;
       font-weight: 500;
@@ -459,6 +469,9 @@
           </div>
         {% endif %}
         <div class="card-body">
+          {% if post.series %}
+          <p class="card-series">📡 {{ post.series }}</p>
+          {% endif %}
           <p class="card-meta">{{ post.date | date: "%B %d, %Y" }}{% if post.categories.size > 0 %} &middot; {{ post.categories | first | capitalize }}{% endif %}</p>
           <h3 class="card-title">{{ post.title }}</h3>
           {% if post.description %}

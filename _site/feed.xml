@@ -1,10 +1,1035 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2026-02-17T16:47:51+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Berke Şentürk</title><subtitle>AI • Renewable Energy • Atmospheric Science</subtitle><entry><title type="html">Welcome to My Blog</title><link href="http://localhost:4000/blog/2026/02/17/welcome/" rel="alternate" type="text/html" title="Welcome to My Blog" /><published>2026-02-17T00:00:00+01:00</published><updated>2026-02-17T00:00:00+01:00</updated><id>http://localhost:4000/blog/2026/02/17/welcome</id><content type="html" xml:base="http://localhost:4000/blog/2026/02/17/welcome/"><![CDATA[<p>Welcome to my personal blog 👋</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2026-02-25T17:04:31+01:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Berke Şentürk</title><subtitle>AI • Renewable Energy • Atmospheric Science</subtitle><entry><title type="html">Step 2 — Getting Data: EUMETSAT</title><link href="http://localhost:4000/blog/2026/02/19/eo-ml-day-02-getting-data/" rel="alternate" type="text/html" title="Step 2 — Getting Data: EUMETSAT" /><published>2026-02-19T00:00:00+01:00</published><updated>2026-02-19T00:00:00+01:00</updated><id>http://localhost:4000/blog/2026/02/19/eo-ml-day-02-getting-data</id><content type="html" xml:base="http://localhost:4000/blog/2026/02/19/eo-ml-day-02-getting-data/"><![CDATA[<p>Yesterday I explained what a satellite image actually is. Today we will jump right into the system design of the continuous ETL pipeline design.</p>
 
-<p>Here I’ll share:</p>
+<p>For a production-scale system, which will handle petabytes of data, an architecture is needed which seperates the concerns properly to scale it in cloud environment. Therefore, microservices software design will be implemented to satisy this need. Below explains my design choices:</p>
+
+<h2 id="key-architectural-decisions">Key Architectural Decisions</h2>
+
+<h3 id="1-separation-of-concerns">1. <strong>Separation of Concerns</strong></h3>
+<ul>
+  <li>Each service has one responsibility</li>
+  <li>Can scale independently</li>
+  <li>Easy to debug and monitor</li>
+</ul>
+
+<h3 id="2-asynchronous-processing">2. <strong>Asynchronous Processing</strong></h3>
+<ul>
+  <li>Services communicate via message queue</li>
+  <li>Non-blocking operations</li>
+  <li>Handles variable processing times</li>
+</ul>
+
+<h3 id="3-data-latency-strategy">3. <strong>Data Latency Strategy</strong></h3>
+<ul>
+  <li>Queries data 1+ hour old (EUMETSAT near-real-time restriction for public users.)</li>
+  <li>Configurable via <code class="language-plaintext highlighter-rouge">min_age_hours</code> setting</li>
+</ul>
+
+<h3 id="4-quality-first-processing">4. <strong>Quality-First Processing</strong></h3>
+<ul>
+  <li>Quality checks before heavy processing</li>
+  <li>Skips low-quality data early</li>
+  <li>Tracks quality metrics in database</li>
+</ul>
+
+<h3 id="5-containerization">5. <strong>Containerization</strong></h3>
+<ul>
+  <li>Each component in separate Docker container</li>
+  <li>Easy deployment and scaling</li>
+  <li>Isolated dependencies</li>
+</ul>
+
+<hr />
+
+<h2 id="source-1-eumetsat-data-store">Source 1: EUMETSAT Data Store</h2>
+
+<h1 id="seviri-data-pipeline">SEVIRI Data Pipeline</h1>
+
+<figure>
+  <img src="/assets/container_diagram.png" class="large" />
+  <figcaption>Architecture of the SEVIRI Data Pipeline</figcaption>
+</figure>
+
+<hr />
+
+<h2 id="component-details">Component Details</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Technology</th>
+      <th>Purpose</th>
+      <th>Key Features</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>API Poller</strong></td>
+      <td>Python, FastAPI</td>
+      <td>Discovery</td>
+      <td>• Polls EUMETSAT every 15 min<br />• Queries data 1+ hour old<br />• Avoids near-real-time restrictions</td>
+    </tr>
+    <tr>
+      <td><strong>Downloader</strong></td>
+      <td>Python, Celery</td>
+      <td>Download</td>
+      <td>• Downloads .nat files<br />• 3 retry attempts<br />• Exponential backoff</td>
+    </tr>
+    <tr>
+      <td><strong>Processor</strong></td>
+      <td>Python, Celery, Satpy</td>
+      <td>Processing</td>
+      <td>• Converts .nat → NetCDF<br />• Calibrates to reflectance<br />• Reprojects to WGS84<br />• Subsets to Paris ROI</td>
+    </tr>
+    <tr>
+      <td><strong>Redis</strong></td>
+      <td>Redis 7</td>
+      <td>Queue</td>
+      <td>• Task distribution<br />• Decouples services</td>
+    </tr>
+    <tr>
+      <td><strong>PostgreSQL</strong></td>
+      <td>PostgreSQL 15</td>
+      <td>Database</td>
+      <td>• File manifest<br />• Status tracking<br />• Quality metrics</td>
+    </tr>
+    <tr>
+      <td><strong>/raw</strong></td>
+      <td>Docker Volume</td>
+      <td>Storage</td>
+      <td>• Temporary .nat files<br />• Deleted after processing</td>
+    </tr>
+    <tr>
+      <td><strong>/processed</strong></td>
+      <td>Docker Volume</td>
+      <td>Storage</td>
+      <td>• Final NetCDF outputs<br />• Organized by date</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="technology-stack">Technology Stack</h2>
+
+<h2 id="overview">Overview</h2>
+
+<p>The project is built as a microservices architecture using Docker containers orchestrated with Docker Compose. The pipeline leverages Python as the primary programming language across all services, with specialized libraries for satellite data processing (Satpy, Pyresample), asynchronous task processing (Celery), and data management (PostgreSQL, Redis). Each component is containerized to ensure isolation, reproducibility, and easy deployment. The system follows a producer-consumer pattern where services communicate through Redis message queues, enabling parallel processing and fault tolerance. Data processing includes converting native SEVIRI format (.nat) to standardized NetCDF files, performing radiometric calibration, reprojecting from geostationary to WGS84 coordinates, and spatially subsetting to region of interest.</p>
+
+<hr />
+<h2 id="detailed-technology-stack">Detailed Technology Stack</h2>
+
+<details>
+
+  <summary>Click to expand table</summary>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Technology</th>
+        <th>Purpose</th>
+        <th>Key Features</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Containerization</strong></td>
+        <td>Docker</td>
+        <td>Container runtime</td>
+        <td>• Isolated environments<br />• Reproducible builds<br />• Easy deployment</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Docker Compose</td>
+        <td>Multi-container orchestration</td>
+        <td>• Service dependencies<br />• Volume management<br />• Network configuration</td>
+      </tr>
+      <tr>
+        <td><strong>Programming Language</strong></td>
+        <td>Python</td>
+        <td>Core language for all services</td>
+        <td>• Rich scientific ecosystem<br />• Easy integration<br />• Excellent libraries</td>
+      </tr>
+      <tr>
+        <td><strong>API Framework</strong></td>
+        <td>FastAPI</td>
+        <td>REST API for poller service</td>
+        <td>• Async support<br />• Auto documentation<br />• Type validation</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Uvicorn</td>
+        <td>ASGI server</td>
+        <td>• High performance<br />• WebSocket support</td>
+      </tr>
+      <tr>
+        <td><strong>Task Queue</strong></td>
+        <td>Celery</td>
+        <td>Distributed task processing</td>
+        <td>• Async task execution<br />• Retry logic<br />• Worker scaling<br />• Task routing</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Redis</td>
+        <td>Message broker &amp; result backend</td>
+        <td>• In-memory speed<br />• Pub/sub messaging<br />• Persistence options</td>
+      </tr>
+      <tr>
+        <td><strong>Database</strong></td>
+        <td>PostgreSQL</td>
+        <td>Metadata and status tracking</td>
+        <td>• ACID compliance<br />• Advanced queries<br />• Reliability</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>psycopg2</td>
+        <td>PostgreSQL adapter</td>
+        <td>• Efficient connections<br />• Connection pooling</td>
+      </tr>
+      <tr>
+        <td><strong>Satellite Data Processing</strong></td>
+        <td>Satpy</td>
+        <td>Satellite data reading &amp; processing</td>
+        <td>• Multi-format support<br />• Calibration tools<br />• SEVIRI native reader</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Pyresample</td>
+        <td>Geospatial resampling</td>
+        <td>• Projection conversion<br />• Area definitions<br />• Nearest neighbor</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>PyOrbital</td>
+        <td>Orbital calculations</td>
+        <td>• Satellite position<br />• Solar angles</td>
+      </tr>
+      <tr>
+        <td><strong>Data Handling</strong></td>
+        <td>xarray</td>
+        <td>N-dimensional labeled arrays</td>
+        <td>• NetCDF integration<br />• Dask support<br />• Label-based indexing</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>NetCDF4</td>
+        <td>NetCDF file I/O</td>
+        <td>• CF conventions<br />• Compression<br />• Metadata support</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>NumPy</td>
+        <td>Numerical computing</td>
+        <td>• Array operations<br />• Mathematical functions</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Dask</td>
+        <td>Parallel computing</td>
+        <td>• Out-of-core processing<br />• Lazy evaluation</td>
+      </tr>
+      <tr>
+        <td><strong>Geospatial</strong></td>
+        <td>PyProj</td>
+        <td>Cartographic projections</td>
+        <td>• Coordinate transformations<br />• WGS84 support<br />• PROJ integration</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Shapely</td>
+        <td>Geometric operations</td>
+        <td>• Polygon operations<br />• Spatial relationships</td>
+      </tr>
+      <tr>
+        <td><strong>Data Access</strong></td>
+        <td>eumdac</td>
+        <td>EUMETSAT API client</td>
+        <td>• Authentication<br />• Product search<br />• Data download</td>
+      </tr>
+      <tr>
+        <td><strong>Scheduling</strong></td>
+        <td>APScheduler</td>
+        <td>Job scheduling</td>
+        <td>• Cron-like intervals<br />• Background jobs<br />• Timezone support</td>
+      </tr>
+      <tr>
+        <td><strong>Configuration</strong></td>
+        <td>PyYAML</td>
+        <td>YAML parsing</td>
+        <td>• Configuration files<br />• Human-readable</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>python-dotenv</td>
+        <td>Environment variables</td>
+        <td>• Secure credentials<br />• Environment management</td>
+      </tr>
+      <tr>
+        <td><strong>Monitoring</strong></td>
+        <td>Prometheus Client</td>
+        <td>Metrics collection</td>
+        <td>• Custom metrics<br />• Time-series data<br />• Scraping endpoints</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Grafana</td>
+        <td>Visualization dashboard</td>
+        <td>• Real-time monitoring<br />• Alerting<br />• Custom dashboards</td>
+      </tr>
+      <tr>
+        <td><strong>Logging</strong></td>
+        <td>python-json-logger</td>
+        <td>Structured logging</td>
+        <td>• JSON format<br />• Easy parsing<br />• Log aggregation</td>
+      </tr>
+      <tr>
+        <td><strong>Utilities</strong></td>
+        <td>python-dateutil</td>
+        <td>Date/time parsing</td>
+        <td>• Flexible parsing<br />• Timezone handling</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>requests</td>
+        <td>HTTP client</td>
+        <td>• API calls<br />• File downloads</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>tqdm</td>
+        <td>Progress bars</td>
+        <td>• Visual feedback<br />• ETA calculation</td>
+      </tr>
+    </tbody>
+  </table>
+
+</details>
+
+<hr />
+
+<h2 id="infrastructure-components">Infrastructure Components</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Image</th>
+      <th>Purpose</th>
+      <th>Configuration</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Redis</strong></td>
+      <td>redis:7-alpine</td>
+      <td>Message broker</td>
+      <td>• Memory: 2GB<br />• Persistence: RDB snapshots<br />• Port: 6379</td>
+    </tr>
+    <tr>
+      <td><strong>PostgreSQL</strong></td>
+      <td>postgres:15-alpine</td>
+      <td>Metadata database</td>
+      <td>• Database: seviri_pipeline<br />• User: seviri<br />• Port: 5432</td>
+    </tr>
+    <tr>
+      <td><strong>Prometheus</strong></td>
+      <td>prom/prometheus:latest</td>
+      <td>Metrics storage</td>
+      <td>• Retention: 15 days<br />• Port: 9090</td>
+    </tr>
+    <tr>
+      <td><strong>Grafana</strong></td>
+      <td>grafana/grafana:latest</td>
+      <td>Monitoring UI</td>
+      <td>• Data source: Prometheus<br />• Port: 3000</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="performance-characteristics">Performance Characteristics</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Value</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Polling Interval</strong></td>
+      <td>15 minutes</td>
+      <td>Configurable</td>
+    </tr>
+    <tr>
+      <td><strong>Data Latency</strong></td>
+      <td>1+ hours</td>
+      <td>To avoid EUMETSAT restrictions</td>
+    </tr>
+    <tr>
+      <td><strong>Download Time</strong></td>
+      <td>2-4 minutes/file</td>
+      <td>Depends on network speed</td>
+    </tr>
+    <tr>
+      <td><strong>Processing Time</strong></td>
+      <td>3-5 minutes/file</td>
+      <td>For Paris subset</td>
+    </tr>
+    <tr>
+      <td><strong>Concurrent Downloads</strong></td>
+      <td>2 workers</td>
+      <td>Configurable</td>
+    </tr>
+    <tr>
+      <td><strong>Concurrent Processing</strong></td>
+      <td>3 workers</td>
+      <td>Configurable</td>
+    </tr>
+    <tr>
+      <td><strong>Daily Throughput</strong></td>
+      <td>~70-80 files</td>
+      <td>Excludes nighttime</td>
+    </tr>
+    <tr>
+      <td><strong>Storage per File</strong></td>
+      <td>~50 MB</td>
+      <td>After compression</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="security-considerations">Security Considerations</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Aspect</th>
+      <th>Implementation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>API Credentials</strong></td>
+      <td>Stored in .env file, never in code</td>
+    </tr>
+    <tr>
+      <td><strong>Database Password</strong></td>
+      <td>Environment variable, not in compose file</td>
+    </tr>
+    <tr>
+      <td><strong>Network Isolation</strong></td>
+      <td>Docker bridge network (seviri-network)</td>
+    </tr>
+    <tr>
+      <td><strong>Container Security</strong></td>
+      <td>Non-root users where possible</td>
+    </tr>
+    <tr>
+      <td><strong>Port Exposure</strong></td>
+      <td>Only necessary ports exposed to host</td>
+    </tr>
+    <tr>
+      <td><strong>Data Validation</strong></td>
+      <td>Input validation in all services</td>
+    </tr>
+    <tr>
+      <td><strong>Error Handling</strong></td>
+      <td>Graceful failures, no sensitive data in logs</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<p>This technology stack provides a robust, scalable, and maintainable solution for continuous SEVIRI satellite data processing, with clear separation of concerns and production-ready features like retry logic, monitoring, and quality control.</p>
+
+<h2 id="what-comes-next">What comes next?</h2>
+
+<p>This is the raw material for everything in Weeks 2–4. Tomorrow in Day 3 we open it up and actually look at it with xarray.</p>]]></content><author><name></name></author><category term="earth-observation" /><category term="data-engineering" /><category term="python" /><summary type="html"><![CDATA[Where to get real satellite and atmospheric data, how to navigate the portals without losing your mind, and a Python script that downloads a SEVIRI fog-season dataset in under 10 minutes.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:4000/assets/logo.png" /><media:content medium="image" url="http://localhost:4000/assets/logo.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Step 2 — Getting Data: EUMETSAT</title><link href="http://localhost:4000/blog/2026/02/19/eo-ml-day-03-soon/" rel="alternate" type="text/html" title="Step 2 — Getting Data: EUMETSAT" /><published>2026-02-19T00:00:00+01:00</published><updated>2026-02-19T00:00:00+01:00</updated><id>http://localhost:4000/blog/2026/02/19/eo-ml-day-03-soon</id><content type="html" xml:base="http://localhost:4000/blog/2026/02/19/eo-ml-day-03-soon/"><![CDATA[<p>Yesterday I explained what a satellite image actually is. Today we will jump right into the system design of the continuous ETL pipeline design.</p>
+
+<p>For a production-scale system, which will handle petabytes of data, an architecture is needed which seperates the concerns properly to scale it in cloud environment. Therefore, microservices software design will be implemented to satisy this need. Below explains my design choices:</p>
+
+<h2 id="key-architectural-decisions">Key Architectural Decisions</h2>
+
+<h3 id="1-separation-of-concerns">1. <strong>Separation of Concerns</strong></h3>
+<ul>
+  <li>Each service has one responsibility</li>
+  <li>Can scale independently</li>
+  <li>Easy to debug and monitor</li>
+</ul>
+
+<h3 id="2-asynchronous-processing">2. <strong>Asynchronous Processing</strong></h3>
+<ul>
+  <li>Services communicate via message queue</li>
+  <li>Non-blocking operations</li>
+  <li>Handles variable processing times</li>
+</ul>
+
+<h3 id="3-data-latency-strategy">3. <strong>Data Latency Strategy</strong></h3>
+<ul>
+  <li>Queries data 1+ hour old (EUMETSAT near-real-time restriction for public users.)</li>
+  <li>Configurable via <code class="language-plaintext highlighter-rouge">min_age_hours</code> setting</li>
+</ul>
+
+<h3 id="4-quality-first-processing">4. <strong>Quality-First Processing</strong></h3>
+<ul>
+  <li>Quality checks before heavy processing</li>
+  <li>Skips low-quality data early</li>
+  <li>Tracks quality metrics in database</li>
+</ul>
+
+<h3 id="5-containerization">5. <strong>Containerization</strong></h3>
+<ul>
+  <li>Each component in separate Docker container</li>
+  <li>Easy deployment and scaling</li>
+  <li>Isolated dependencies</li>
+</ul>
+
+<hr />
+
+<h2 id="source-1-eumetsat-data-store">Source 1: EUMETSAT Data Store</h2>
+
+<h1 id="seviri-data-pipeline">SEVIRI Data Pipeline</h1>
+
+<figure>
+  <img src="/assets/container_diagram.png" class="large" />
+  <figcaption>Architecture of the SEVIRI Data Pipeline</figcaption>
+</figure>
+
+<hr />
+
+<h2 id="component-details">Component Details</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Technology</th>
+      <th>Purpose</th>
+      <th>Key Features</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>API Poller</strong></td>
+      <td>Python, FastAPI</td>
+      <td>Discovery</td>
+      <td>• Polls EUMETSAT every 15 min<br />• Queries data 1+ hour old<br />• Avoids near-real-time restrictions</td>
+    </tr>
+    <tr>
+      <td><strong>Downloader</strong></td>
+      <td>Python, Celery</td>
+      <td>Download</td>
+      <td>• Downloads .nat files<br />• 3 retry attempts<br />• Exponential backoff</td>
+    </tr>
+    <tr>
+      <td><strong>Processor</strong></td>
+      <td>Python, Celery, Satpy</td>
+      <td>Processing</td>
+      <td>• Converts .nat → NetCDF<br />• Calibrates to reflectance<br />• Reprojects to WGS84<br />• Subsets to Paris ROI</td>
+    </tr>
+    <tr>
+      <td><strong>Redis</strong></td>
+      <td>Redis 7</td>
+      <td>Queue</td>
+      <td>• Task distribution<br />• Decouples services</td>
+    </tr>
+    <tr>
+      <td><strong>PostgreSQL</strong></td>
+      <td>PostgreSQL 15</td>
+      <td>Database</td>
+      <td>• File manifest<br />• Status tracking<br />• Quality metrics</td>
+    </tr>
+    <tr>
+      <td><strong>/raw</strong></td>
+      <td>Docker Volume</td>
+      <td>Storage</td>
+      <td>• Temporary .nat files<br />• Deleted after processing</td>
+    </tr>
+    <tr>
+      <td><strong>/processed</strong></td>
+      <td>Docker Volume</td>
+      <td>Storage</td>
+      <td>• Final NetCDF outputs<br />• Organized by date</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="technology-stack">Technology Stack</h2>
+
+<h2 id="overview">Overview</h2>
+
+<p>The project is built as a microservices architecture using Docker containers orchestrated with Docker Compose. The pipeline leverages Python as the primary programming language across all services, with specialized libraries for satellite data processing (Satpy, Pyresample), asynchronous task processing (Celery), and data management (PostgreSQL, Redis). Each component is containerized to ensure isolation, reproducibility, and easy deployment. The system follows a producer-consumer pattern where services communicate through Redis message queues, enabling parallel processing and fault tolerance. Data processing includes converting native SEVIRI format (.nat) to standardized NetCDF files, performing radiometric calibration, reprojecting from geostationary to WGS84 coordinates, and spatially subsetting to region of interest.</p>
+
+<hr />
+<h2 id="detailed-technology-stack">Detailed Technology Stack</h2>
+
+<details>
+
+  <summary>Click to expand table</summary>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Technology</th>
+        <th>Purpose</th>
+        <th>Key Features</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Containerization</strong></td>
+        <td>Docker</td>
+        <td>Container runtime</td>
+        <td>• Isolated environments<br />• Reproducible builds<br />• Easy deployment</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Docker Compose</td>
+        <td>Multi-container orchestration</td>
+        <td>• Service dependencies<br />• Volume management<br />• Network configuration</td>
+      </tr>
+      <tr>
+        <td><strong>Programming Language</strong></td>
+        <td>Python</td>
+        <td>Core language for all services</td>
+        <td>• Rich scientific ecosystem<br />• Easy integration<br />• Excellent libraries</td>
+      </tr>
+      <tr>
+        <td><strong>API Framework</strong></td>
+        <td>FastAPI</td>
+        <td>REST API for poller service</td>
+        <td>• Async support<br />• Auto documentation<br />• Type validation</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Uvicorn</td>
+        <td>ASGI server</td>
+        <td>• High performance<br />• WebSocket support</td>
+      </tr>
+      <tr>
+        <td><strong>Task Queue</strong></td>
+        <td>Celery</td>
+        <td>Distributed task processing</td>
+        <td>• Async task execution<br />• Retry logic<br />• Worker scaling<br />• Task routing</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Redis</td>
+        <td>Message broker &amp; result backend</td>
+        <td>• In-memory speed<br />• Pub/sub messaging<br />• Persistence options</td>
+      </tr>
+      <tr>
+        <td><strong>Database</strong></td>
+        <td>PostgreSQL</td>
+        <td>Metadata and status tracking</td>
+        <td>• ACID compliance<br />• Advanced queries<br />• Reliability</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>psycopg2</td>
+        <td>PostgreSQL adapter</td>
+        <td>• Efficient connections<br />• Connection pooling</td>
+      </tr>
+      <tr>
+        <td><strong>Satellite Data Processing</strong></td>
+        <td>Satpy</td>
+        <td>Satellite data reading &amp; processing</td>
+        <td>• Multi-format support<br />• Calibration tools<br />• SEVIRI native reader</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Pyresample</td>
+        <td>Geospatial resampling</td>
+        <td>• Projection conversion<br />• Area definitions<br />• Nearest neighbor</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>PyOrbital</td>
+        <td>Orbital calculations</td>
+        <td>• Satellite position<br />• Solar angles</td>
+      </tr>
+      <tr>
+        <td><strong>Data Handling</strong></td>
+        <td>xarray</td>
+        <td>N-dimensional labeled arrays</td>
+        <td>• NetCDF integration<br />• Dask support<br />• Label-based indexing</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>NetCDF4</td>
+        <td>NetCDF file I/O</td>
+        <td>• CF conventions<br />• Compression<br />• Metadata support</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>NumPy</td>
+        <td>Numerical computing</td>
+        <td>• Array operations<br />• Mathematical functions</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Dask</td>
+        <td>Parallel computing</td>
+        <td>• Out-of-core processing<br />• Lazy evaluation</td>
+      </tr>
+      <tr>
+        <td><strong>Geospatial</strong></td>
+        <td>PyProj</td>
+        <td>Cartographic projections</td>
+        <td>• Coordinate transformations<br />• WGS84 support<br />• PROJ integration</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Shapely</td>
+        <td>Geometric operations</td>
+        <td>• Polygon operations<br />• Spatial relationships</td>
+      </tr>
+      <tr>
+        <td><strong>Data Access</strong></td>
+        <td>eumdac</td>
+        <td>EUMETSAT API client</td>
+        <td>• Authentication<br />• Product search<br />• Data download</td>
+      </tr>
+      <tr>
+        <td><strong>Scheduling</strong></td>
+        <td>APScheduler</td>
+        <td>Job scheduling</td>
+        <td>• Cron-like intervals<br />• Background jobs<br />• Timezone support</td>
+      </tr>
+      <tr>
+        <td><strong>Configuration</strong></td>
+        <td>PyYAML</td>
+        <td>YAML parsing</td>
+        <td>• Configuration files<br />• Human-readable</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>python-dotenv</td>
+        <td>Environment variables</td>
+        <td>• Secure credentials<br />• Environment management</td>
+      </tr>
+      <tr>
+        <td><strong>Monitoring</strong></td>
+        <td>Prometheus Client</td>
+        <td>Metrics collection</td>
+        <td>• Custom metrics<br />• Time-series data<br />• Scraping endpoints</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>Grafana</td>
+        <td>Visualization dashboard</td>
+        <td>• Real-time monitoring<br />• Alerting<br />• Custom dashboards</td>
+      </tr>
+      <tr>
+        <td><strong>Logging</strong></td>
+        <td>python-json-logger</td>
+        <td>Structured logging</td>
+        <td>• JSON format<br />• Easy parsing<br />• Log aggregation</td>
+      </tr>
+      <tr>
+        <td><strong>Utilities</strong></td>
+        <td>python-dateutil</td>
+        <td>Date/time parsing</td>
+        <td>• Flexible parsing<br />• Timezone handling</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>requests</td>
+        <td>HTTP client</td>
+        <td>• API calls<br />• File downloads</td>
+      </tr>
+      <tr>
+        <td> </td>
+        <td>tqdm</td>
+        <td>Progress bars</td>
+        <td>• Visual feedback<br />• ETA calculation</td>
+      </tr>
+    </tbody>
+  </table>
+
+</details>
+
+<hr />
+
+<h2 id="infrastructure-components">Infrastructure Components</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>Image</th>
+      <th>Purpose</th>
+      <th>Configuration</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Redis</strong></td>
+      <td>redis:7-alpine</td>
+      <td>Message broker</td>
+      <td>• Memory: 2GB<br />• Persistence: RDB snapshots<br />• Port: 6379</td>
+    </tr>
+    <tr>
+      <td><strong>PostgreSQL</strong></td>
+      <td>postgres:15-alpine</td>
+      <td>Metadata database</td>
+      <td>• Database: seviri_pipeline<br />• User: seviri<br />• Port: 5432</td>
+    </tr>
+    <tr>
+      <td><strong>Prometheus</strong></td>
+      <td>prom/prometheus:latest</td>
+      <td>Metrics storage</td>
+      <td>• Retention: 15 days<br />• Port: 9090</td>
+    </tr>
+    <tr>
+      <td><strong>Grafana</strong></td>
+      <td>grafana/grafana:latest</td>
+      <td>Monitoring UI</td>
+      <td>• Data source: Prometheus<br />• Port: 3000</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="performance-characteristics">Performance Characteristics</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric</th>
+      <th>Value</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Polling Interval</strong></td>
+      <td>15 minutes</td>
+      <td>Configurable</td>
+    </tr>
+    <tr>
+      <td><strong>Data Latency</strong></td>
+      <td>1+ hours</td>
+      <td>To avoid EUMETSAT restrictions</td>
+    </tr>
+    <tr>
+      <td><strong>Download Time</strong></td>
+      <td>2-4 minutes/file</td>
+      <td>Depends on network speed</td>
+    </tr>
+    <tr>
+      <td><strong>Processing Time</strong></td>
+      <td>3-5 minutes/file</td>
+      <td>For Paris subset</td>
+    </tr>
+    <tr>
+      <td><strong>Concurrent Downloads</strong></td>
+      <td>2 workers</td>
+      <td>Configurable</td>
+    </tr>
+    <tr>
+      <td><strong>Concurrent Processing</strong></td>
+      <td>3 workers</td>
+      <td>Configurable</td>
+    </tr>
+    <tr>
+      <td><strong>Daily Throughput</strong></td>
+      <td>~70-80 files</td>
+      <td>Excludes nighttime</td>
+    </tr>
+    <tr>
+      <td><strong>Storage per File</strong></td>
+      <td>~50 MB</td>
+      <td>After compression</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="security-considerations">Security Considerations</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Aspect</th>
+      <th>Implementation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>API Credentials</strong></td>
+      <td>Stored in .env file, never in code</td>
+    </tr>
+    <tr>
+      <td><strong>Database Password</strong></td>
+      <td>Environment variable, not in compose file</td>
+    </tr>
+    <tr>
+      <td><strong>Network Isolation</strong></td>
+      <td>Docker bridge network (seviri-network)</td>
+    </tr>
+    <tr>
+      <td><strong>Container Security</strong></td>
+      <td>Non-root users where possible</td>
+    </tr>
+    <tr>
+      <td><strong>Port Exposure</strong></td>
+      <td>Only necessary ports exposed to host</td>
+    </tr>
+    <tr>
+      <td><strong>Data Validation</strong></td>
+      <td>Input validation in all services</td>
+    </tr>
+    <tr>
+      <td><strong>Error Handling</strong></td>
+      <td>Graceful failures, no sensitive data in logs</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<p>This technology stack provides a robust, scalable, and maintainable solution for continuous SEVIRI satellite data processing, with clear separation of concerns and production-ready features like retry logic, monitoring, and quality control.</p>
+
+<h2 id="what-comes-next">What comes next?</h2>
+
+<p>This is the raw material for everything in Weeks 2–4. Tomorrow in Day 3 we open it up and actually look at it with xarray.</p>]]></content><author><name></name></author><category term="earth-observation" /><category term="data-engineering" /><category term="python" /><summary type="html"><![CDATA[Where to get real satellite and atmospheric data, how to navigate the portals without losing your mind, and a Python script that downloads a SEVIRI fog-season dataset in under 10 minutes.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:4000/assets/logo.png" /><media:content medium="image" url="http://localhost:4000/assets/logo.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">Step 1 — What Is a Satellite Image, Really?</title><link href="http://localhost:4000/blog/2026/02/18/eo-ml-day-01-what-is-a-satellite-image/" rel="alternate" type="text/html" title="Step 1 — What Is a Satellite Image, Really?" /><published>2026-02-18T00:00:00+01:00</published><updated>2026-02-18T00:00:00+01:00</updated><id>http://localhost:4000/blog/2026/02/18/eo-ml-day-01-what-is-a-satellite-image</id><content type="html" xml:base="http://localhost:4000/blog/2026/02/18/eo-ml-day-01-what-is-a-satellite-image/"><![CDATA[<h2 id="a-satellite-image-is-not-a-photograph">A satellite image is not a photograph</h2>
+
+<figure>
+  <img src="/assets/sat_data.png" class="small" />
+</figure>
+
+<p>Your phone camera captures three channels (red, green, blue) as perceived by a sensor designed to mimic the human eye. A satellite instrument like SEVIRI (the Spinning Enhanced Visible and InfraRed Imager aboard Meteosat) captures <strong>12 spectral channels</strong>, most of which are completely invisible to human eyes.</p>
+
+<p>Those channels include:</p>
 
 <ul>
-  <li>Research insights</li>
-  <li>Energy forecasting projects</li>
-  <li>AI experiments</li>
-  <li>Tutorials</li>
-</ul>]]></content><author><name></name></author><category term="intro" /><category term="research" /><summary type="html"><![CDATA[Introduction to my research, AI projects, and energy forecasting work.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:4000/assets/img/blog/welcome.jpg" /><media:content medium="image" url="http://localhost:4000/assets/img/blog/welcome.jpg" xmlns:media="http://search.yahoo.com/mrss/" /></entry></feed>
+  <li>Visible light (what we’d recognise as a photo)</li>
+  <li>Near-infrared (NIR) — sensitive to vegetation health</li>
+  <li>Mid-wave infrared (MWIR) — sensitive to fire hotspots and surface temperature</li>
+  <li>Thermal infrared (TIR) — what the atmosphere itself emits at night</li>
+  <li>Water vapour channels — literally imaging moisture in the mid-troposphere</li>
+</ul>
+
+<p>When you load all 12 channels into a NumPy array and normalise them together, you’re treating a water vapour image and a visible image as the same kind of thing. They’re not. They have different physical units, different dynamic ranges, different noise characteristics, and different relationships to what you’re trying to detect.</p>
+
+<div class="callout">
+<strong>The first lesson: know your data before you touch your model.</strong>
+</div>
+
+<h2 id="dataset-high-rate-seviri-level-15-image-data---msg---0-degree">Dataset: High Rate SEVIRI Level 1.5 Image Data - MSG - 0 degree</h2>
+
+<blockquote>
+  <p><em>“The Spinning Enhanced Visible and InfraRed Imager (SEVIRI) is MSG’s primary instrument and has the capacity to observe the Earth in 12 spectral channels. Eight of the channels are in the thermal infrared, providing, among other information, permanent data about the temperatures of clouds, land and sea surfaces. One of the channels is called the High Resolution Visible (HRV) channel, and has a sampling distance at nadir of 1km, as opposed to the 3km resolution of the other visible channels.</em></p>
+
+  <p><em>Using channels that absorb ozone, water vapour and carbon dioxide, MSG satellites allows meteorologists to analyse the characteristics of atmospheric air masses and reconstruct a three-dimensional view of the atmosphere. The 1km horizontal image resolution for the visible light spectral channel also helps weather forecasters in detecting and predicting the onset or end of severe weather.”</em></p>
+
+  <p>— EUMETSAT</p>
+</blockquote>
+
+<h2 id="the-projection-problem">The projection problem</h2>
+
+<figure>
+  <img src="/assets/05-geostationary-sat-ani.webp" class="small center" />
+  <figcaption>https://science.nasa.gov/learn/basics-of-space-flight/chapter5-1/</figcaption>
+</figure>
+
+<p>Satellite pixels aren’t on a regular lat/lon grid. SEVIRI uses geostationary projection the satellite sits fixed above the equator at 35,786 km altitude, constantly viewing the same hemisphere. Pixels near the edge of Earth’s visible disk are massively stretched compared to pixels directly below the satellite. A nominal 3km pixel over Germany might span 6-8km on the ground near northern Scandinavia due to this viewing angle.This matters because comparing satellite data with ground stations or combining multiple satellite sources requires reprojecting everything to a common coordinate system first. You can’t just overlay arrays and assume pixels align they won’t.</p>
+
+<h2 id="what-this-means-for-ml">What this means for ML</h2>
+
+<p>Three practical consequences that will affect every model you build:</p>
+<ol>
+  <li>Spatial autocorrelation breaks random splits. A fog bank doesn’t affect a single pixel it spans thousands of adjacent pixels. Random train/test splitting means your validation set contains pixels almost identical to training pixels just 3km away. Your metrics will look great, but your model hasn’t learned to generalize. You need spatial or temporal splits instead.</li>
+  <li>Channel statistics have physical meaning. A thermal infrared channel measuring brightness temperature ranges from 210K (cold cloud tops) to 310K (warm surfaces). A visible reflectance channel goes from 0 to 1.2. Normalizing these together destroys their physical interpretation and creates pathological gradients. Each channel needs separate standardization using climatological statistics, not batch statistics.</li>
+  <li>Missing data is structured, not random. Clouds block the view of fog beneath them. Scan line failures create systematic gaps. Sun glint contaminates ocean pixels. These aren’t random missing values you can drop or impute they have spatial and temporal patterns your model must handle explicitly, either through masking or by learning to recognize unreliable pixels.</li>
+</ol>
+
+<hr />
+
+<h2 id="tomorrow">Tomorrow</h2>
+
+<p>In Day 2 we actually get our hands on data engineering: I’ll walk through the design choices of the ETL pipeline.</p>]]></content><author><name></name></author><category term="earth-observation" /><category term="remote-sensing" /><category term="fundamentals" /><summary type="html"><![CDATA[A satellite image is not a photograph]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:4000/assets/logo.png" /><media:content medium="image" url="http://localhost:4000/assets/logo.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry><entry><title type="html">ML for Earth Observation — Series Overview</title><link href="http://localhost:4000/blog/2026/02/17/eo-ml-series-overview/" rel="alternate" type="text/html" title="ML for Earth Observation — Series Overview" /><published>2026-02-17T00:00:00+01:00</published><updated>2026-02-17T00:00:00+01:00</updated><id>http://localhost:4000/blog/2026/02/17/eo-ml-series-overview</id><content type="html" xml:base="http://localhost:4000/blog/2026/02/17/eo-ml-series-overview/"><![CDATA[<p>Most data science blog series teach machine learning on Titanic survivors or iris flowers. This one does it on <strong>real pixels from space</strong>.</p>
+
+<p>Over the next 30 days I’m publishing a daily engineering journal documenting how I build MLOps pipelines using satellite data. Every post has a working notebook, a real dataset, and at least one honest paragraph about what went wrong.</p>
+
+<p>This is not a tutorial series. It’s a working engineer’s notebook made public.</p>
+
+<hr />
+
+<h2 id="project-idea">Project Idea</h2>
+
+<p>I decided to start from the beginning to the deep learning project that I worked before at my work student job at Institute of Meteorology and Climate Research while I was studying my Master’s Degree at KIT. The topic of the project was Cloud Hole Detection with Convolutional Neural Networks. The task was to accomplish the binary classification with CNNs My task was to create labels from the preprocessed (subsetted) data as 0 (not_cloud_hole) and 1 (cloud_hole), write the scripts for models, datasets and evaluate them.</p>
+
+<p>This project was presented in Helmholtz AI 2025 in Karlsruhe but I will start from beginning and explore it furthermore to see if any step of the project could have been better.</p>
+
+<hr />
+
+<h2 id="the-full-roadmap">The full roadmap</h2>
+
+<h3 id="stage-1-the-data">Stage 1: The Data</h3>
+<p>Before any model, you need to understand what you’re working with. Most DS courses skip this entirely. We won’t. Yet, I will skip beginner level information such as bands, projections and so on.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Step</th>
+      <th>Topic</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Data: Meteosat SEVIRI - Overview</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Data Retrieval Strategy: ETL Pipeline Design</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>ETL Pipeline #1: API Poller, messaging service</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>ETL Pipeline #2: Downloader Service</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>ETL Pipeline #3: Processor Service (transforming data)</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>ETL Pipeline #4:</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Stage 1 recap: the data pipeline we built, what surprised me</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="stage-2--will-come-soon">Stage 2 — Will come soon!</h3>
+
+<hr />
+
+<h2 id="how-to-follow-along">How to follow along</h2>
+
+<p>Every post will be published here. The companion GitHub repositories, for Data Engineering aspects <code class="language-plaintext highlighter-rouge">https://github.com/berkesenturk/SatelliteETL</code> and <code class="language-plaintext highlighter-rouge">https://github.com/berkesenturk/Cloud_hole_detection_CNN</code> to cover Data Science behind of the project will have contents and notebook as frequent as possible. I’ll update it as each post goes live.</p>
+
+<p>If you work in EO, climate tech, or geospatial ML and want to discuss or suggestions for any of this, please find me on <a href="https://www.linkedin.com/in/berkesenturk/">LinkedIn</a> or <a href="https://github.com/berkesenturk">GitHub</a>.</p>
+
+<p>Let’s get into the data.</p>]]></content><author><name></name></author><category term="earth-observation" /><category term="data-engineering" /><category term="machine-learning" /><category term="journaling" /><summary type="html"><![CDATA[An engineering journal building production level ML systems on satellite data, from raw netCDF files to deployed cloud hole detectors. Full roadmap inside.]]></summary><media:thumbnail xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:4000/assets/logo.png" /><media:content medium="image" url="http://localhost:4000/assets/logo.png" xmlns:media="http://search.yahoo.com/mrss/" /></entry></feed>

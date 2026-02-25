@@ -1,8 +1,48 @@
----
-layout: default
----
-
-<style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ML for Earth Observation — Series Overview | Berke Şentürk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #009877;
+      --green-dark: #00785e;
+      --ink: #1a1a1a;
+      --ink-soft: #4a4a4a;
+      --ink-muted: #888;
+      --border: #e5e5e5;
+      --bg: #f7f7f5;
+      --white: #ffffff;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.7; }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(247,247,245,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 60px;
+    }
+    .nav-logo { font-family: 'DM Serif Display', serif; font-size: 1.15rem; color: var(--ink); text-decoration: none; }
+    .nav-links { display: flex; gap: 28px; }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--ink-soft); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--green); }
+    main { max-width: 720px; margin: 0 auto; padding: 60px 40px 100px; }
+    footer { border-top: 1px solid var(--border); padding: 28px 40px; text-align: center; font-size: 0.8rem; color: var(--ink-muted); }
+    @media (max-width: 680px) { nav { padding: 0 20px; } main { padding: 40px 20px 80px; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">Berke Şentürk</a>
+  <div class="nav-links">
+    <a href="/">← Home</a>
+  </div>
+</nav>
+<main>
+  <style>
   .post-header { margin-bottom: 40px; }
 
   .post-series-badge {
@@ -269,51 +309,124 @@ layout: default
 
 <article>
   <header class="post-header">
-    {% if page.series %}
+    
     <a class="post-series-badge" href="/#blog">
-      📡 {{ page.series }}
+      📡 ML for Earth Observation
     </a>
-    {% endif %}
+    
 
-    <h1 class="post-title">{{ page.title }}</h1>
+    <h1 class="post-title">ML for Earth Observation — Series Overview</h1>
 
     <div class="post-meta">
-      <span class="post-meta-item">{{ page.date | date: "%B %d, %Y" }}</span>
-      {% if page.read_time %}
+      <span class="post-meta-item">February 17, 2026</span>
+      
       <span class="post-meta-sep">·</span>
-      <span class="post-meta-item">{{ page.read_time }} min read</span>
-      {% endif %}
-      {% for cat in page.categories %}
-      <span class="post-category-tag">{{ cat }}</span>
-      {% endfor %}
+      <span class="post-meta-item">5 min read</span>
+      
+      
+      <span class="post-category-tag">earth-observation</span>
+      
+      <span class="post-category-tag">data-engineering</span>
+      
+      <span class="post-category-tag">machine-learning</span>
+      
+      <span class="post-category-tag">journaling</span>
+      
     </div>
 
-    {% if page.skills %}
+    
     <div class="info-box skills">
-      <strong>🔧 Skills unlocked:</strong> {{ page.skills | join: " · " }}
+      <strong>🔧 Skills unlocked:</strong> data engineering project planning
     </div>
-    {% endif %}
+    
 
-    {% if page.github %}
-    <div class="info-box repro">
-      <strong>📦 Reproduce this:</strong>
-      <a href="{{ page.github }}" target="_blank" rel="noopener">{{ page.github }}</a>
-      {% if page.runtime %} · ⏱ ~{{ page.runtime }}{% endif %}
-      {% if page.data_source %} · 🛰 Data: {{ page.data_source }}{% endif %}
-    </div>
-    {% endif %}
+    
   </header>
 
   <div class="post-body">
-    {{ content }}
+    <p>Most data science blog series teach machine learning on Titanic survivors or iris flowers. This one does it on <strong>real pixels from space</strong>.</p>
+
+<p>Over the next 30 days I’m publishing a daily engineering journal documenting how I build MLOps pipelines using satellite data. Every post has a working notebook, a real dataset, and at least one honest paragraph about what went wrong.</p>
+
+<p>This is not a tutorial series. It’s a working engineer’s notebook made public.</p>
+
+<hr />
+
+<h2 id="project-idea">Project Idea</h2>
+
+<p>I decided to start from the beginning to the deep learning project that I worked before at my work student job at Institute of Meteorology and Climate Research while I was studying my Master’s Degree at KIT. The topic of the project was Cloud Hole Detection with Convolutional Neural Networks. The task was to accomplish the binary classification with CNNs My task was to create labels from the preprocessed (subsetted) data as 0 (not_cloud_hole) and 1 (cloud_hole), write the scripts for models, datasets and evaluate them.</p>
+
+<p>This project was presented in Helmholtz AI 2025 in Karlsruhe but I will start from beginning and explore it furthermore to see if any step of the project could have been better.</p>
+
+<hr />
+
+<h2 id="the-full-roadmap">The full roadmap</h2>
+
+<h3 id="stage-1-the-data">Stage 1: The Data</h3>
+<p>Before any model, you need to understand what you’re working with. Most DS courses skip this entirely. We won’t. Yet, I will skip beginner level information such as bands, projections and so on.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Step</th>
+      <th>Topic</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Data: Meteosat SEVIRI - Overview</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Data Retrieval Strategy: ETL Pipeline Design</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>ETL Pipeline #1: API Poller, messaging service</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>ETL Pipeline #2: Downloader Service</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>ETL Pipeline #3: Processor Service (transforming data)</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>ETL Pipeline #4:</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td>Stage 1 recap: the data pipeline we built, what surprised me</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="stage-2--will-come-soon">Stage 2 — Will come soon!</h3>
+
+<hr />
+
+<h2 id="how-to-follow-along">How to follow along</h2>
+
+<p>Every post will be published here. The companion GitHub repositories, for Data Engineering aspects <code class="language-plaintext highlighter-rouge">https://github.com/berkesenturk/SatelliteETL</code> and <code class="language-plaintext highlighter-rouge">https://github.com/berkesenturk/Cloud_hole_detection_CNN</code> to cover Data Science behind of the project will have contents and notebook as frequent as possible. I’ll update it as each post goes live.</p>
+
+<p>If you work in EO, climate tech, or geospatial ML and want to discuss or suggestions for any of this, please find me on <a href="https://www.linkedin.com/in/berkesenturk/">LinkedIn</a> or <a href="https://github.com/berkesenturk">GitHub</a>.</p>
+
+<p>Let’s get into the data.</p>
+
   </div>
 
   <div class="post-nav">
-    {% if page.prev_post %}
-    <a href="{{ page.prev_post_url }}">← {{ page.prev_post }}</a>
-    {% else %}<span></span>{% endif %}
-    {% if page.next_post %}
-    <a href="{{ page.next_post_url }}">{{ page.next_post }} →</a>
-    {% else %}<span></span>{% endif %}
+    <span></span>
+    
+    <a href="/blog/2026/02/18/eo-ml-day-01-what-is-a-satellite-image/">Step 1 — What Is a Satellite Image, Really? →</a>
+    
   </div>
 </article>
+
+</main>
+<footer>&copy; 2026 Berke Şentürk</footer>
+</body>
+</html>

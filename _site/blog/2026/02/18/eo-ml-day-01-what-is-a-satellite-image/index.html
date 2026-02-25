@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 1 — What Is a Satellite Image, Really? | Berke Şentürk</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #009877;
+      --green-dark: #00785e;
+      --ink: #1a1a1a;
+      --ink-soft: #4a4a4a;
+      --ink-muted: #888;
+      --border: #e5e5e5;
+      --bg: #f7f7f5;
+      --white: #ffffff;
+    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.7; }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(247,247,245,0.92); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 60px;
+    }
+    .nav-logo { font-family: 'DM Serif Display', serif; font-size: 1.15rem; color: var(--ink); text-decoration: none; }
+    .nav-links { display: flex; gap: 28px; }
+    .nav-links a { font-size: 0.875rem; font-weight: 500; color: var(--ink-soft); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--green); }
+    main { max-width: 720px; margin: 0 auto; padding: 60px 40px 100px; }
+    footer { border-top: 1px solid var(--border); padding: 28px 40px; text-align: center; font-size: 0.8rem; color: var(--ink-muted); }
+    @media (max-width: 680px) { nav { padding: 0 20px; } main { padding: 40px 20px 80px; } }
+  </style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">Berke Şentürk</a>
+  <div class="nav-links">
+    <a href="/">← Home</a>
+  </div>
+</nav>
+<main>
+  <style>
+  .post-header { margin-bottom: 40px; }
+
+  .post-series-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--green);
+    background: var(--green-pale);
+    padding: 5px 12px;
+    border-radius: 999px;
+    margin-bottom: 18px;
+    text-decoration: none;
+  }
+  .post-series-badge:hover { background: #c8ede5; }
+
+  .post-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+
+  .post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    margin-bottom: 28px;
+  }
+  .post-meta-item { display: flex; align-items: center; gap: 5px; }
+  .post-meta-sep { color: var(--border); }
+
+  .post-category-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--green-dark);
+    background: var(--green-pale);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  /* ── Info boxes ── */
+  .info-box {
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin: 28px 0;
+    font-size: 0.9rem;
+    line-height: 1.65;
+  }
+  .info-box.skills {
+    background: var(--green-pale);
+    border-left: 3px solid var(--green);
+  }
+  .info-box.skills strong { color: var(--green-dark); }
+  .info-box.repro {
+    background: #f0f4ff;
+    border-left: 3px solid #4a7ce8;
+  }
+  .info-box.repro strong { color: #2c5cc5; }
+  .info-box.honest {
+    background: #fff8ed;
+    border-left: 3px solid #e8a020;
+  }
+  .info-box.honest strong { color: #b87010; }
+
+  /* ── Post body typography ── */
+  .post-body { font-size: 1rem; line-height: 1.8; color: var(--ink-soft); }
+  .post-body h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem;
+    color: var(--ink);
+    margin: 44px 0 16px;
+    letter-spacing: -0.01em;
+  }
+  .post-body h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 32px 0 12px;
+  }
+  .post-body p { margin-bottom: 20px; }
+  .post-body ul, .post-body ol { margin: 0 0 20px 22px; }
+  .post-body li { margin-bottom: 8px; }
+  .post-body a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
+  .post-body a:hover { color: var(--green-dark); }
+  .post-body strong { color: var(--ink); font-weight: 600; }
+  .post-body hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  .post-body code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.875em;
+    background: #f0f0ee;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+  .post-body pre {
+    background: #1c1c1e;
+    color: #e8e8e6;
+    padding: 22px 24px;
+    border-radius: 12px;
+    overflow-x: auto;
+    margin: 24px 0;
+    font-size: 0.875rem;
+    line-height: 1.65;
+  }
+  .post-body pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  details {
+    margin: 24px 0;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--white);
+  }
+
+  details summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--green);
+    user-select: none;
+    list-style: none; /* Remove default arrow on some browsers */
+  }
+
+  details summary::-webkit-details-marker {
+    display: none; /* Remove arrow on webkit browsers */
+  }
+
+  details summary::before {
+    content: '▶ ';
+    display: inline-block;
+    transition: transform 0.2s;
+  }
+
+  details[open] summary::before {
+    transform: rotate(90deg);
+  }
+
+  details[open] summary {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  figcaption {
+    
+    text-align: center;
+  }
+
+  table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+  padding-left: 10px;
+  padding-right: 10px;
+  }
+.post-body blockquote {
+  font-style: italic;
+  color: #666;
+  border-left: 4px solid #ddd;
+  padding-left: 20px;
+  margin: 32px 0;
+}
+
+.post-body figure {
+  text-align: center;
+  margin: 32px 0;
+}
+
+.post-body figure img {
+  display: block;
+  margin: 0 auto;  /* Centers the image */
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.post-body figcaption {
+  margin-top: 12px;
+  font-size: 0.9em;
+  color: #999;
+}
+
+/* Small image - 80% width, centered */
+.post-body img.small {
+  max-width: 80%;
+  width: 80%;
+  margin: 0 auto;  /* This centers it */
+}
+
+/* Medium image - moderate breakout */
+.post-body img.medium {
+  max-width: calc(100% + 200px);
+  width: calc(100% + 200px);
+  margin-left: -100px;
+}
+.post-body .callout {
+  background: #e8f7f4;
+  border-left: 4px solid #009877;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 24px 0;
+  font-weight: 500;
+  color: #00785e;
+}
+
+/* Large image - full breakout */
+.post-body img.large {
+  max-width: calc(100% + 400px);
+  width: calc(100% + 400px);
+  margin-left: -200px;
+}
+
+/* Default images without class */
+.post-body img:not(.small):not(.medium):not(.large) {
+  display: block;
+  margin: 32px auto;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 680px) {
+  .post-body img.medium,
+  .post-body img.large {
+    max-width: 100%;
+    width: 100%;
+    margin-left: 0;
+  }
+}
+  /* ── Navigation between posts ── */
+  .post-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 60px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+  }
+  .post-nav a {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--green);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .post-nav a:hover { color: var(--green-dark); }
+</style>
+
+<article>
+  <header class="post-header">
+    
+    <a class="post-series-badge" href="/#blog">
+      📡 ML for Earth Observation
+    </a>
+    
+
+    <h1 class="post-title">Step 1 — What Is a Satellite Image, Really?</h1>
+
+    <div class="post-meta">
+      <span class="post-meta-item">February 18, 2026</span>
+      
+      <span class="post-meta-sep">·</span>
+      <span class="post-meta-item">3 min read</span>
+      
+      
+      <span class="post-category-tag">earth-observation</span>
+      
+      <span class="post-category-tag">remote-sensing</span>
+      
+      <span class="post-category-tag">fundamentals</span>
+      
+    </div>
+
+    
+    <div class="info-box skills">
+      <strong>🔧 Skills unlocked:</strong> Remote Sensing fundamentals · data exploration
+    </div>
+    
+
+    
+  </header>
+
+  <div class="post-body">
+    <h2 id="a-satellite-image-is-not-a-photograph">A satellite image is not a photograph</h2>
+
+<figure>
+  <img src="/assets/sat_data.png" class="small" />
+</figure>
+
+<p>Your phone camera captures three channels (red, green, blue) as perceived by a sensor designed to mimic the human eye. A satellite instrument like SEVIRI (the Spinning Enhanced Visible and InfraRed Imager aboard Meteosat) captures <strong>12 spectral channels</strong>, most of which are completely invisible to human eyes.</p>
+
+<p>Those channels include:</p>
+
+<ul>
+  <li>Visible light (what we’d recognise as a photo)</li>
+  <li>Near-infrared (NIR) — sensitive to vegetation health</li>
+  <li>Mid-wave infrared (MWIR) — sensitive to fire hotspots and surface temperature</li>
+  <li>Thermal infrared (TIR) — what the atmosphere itself emits at night</li>
+  <li>Water vapour channels — literally imaging moisture in the mid-troposphere</li>
+</ul>
+
+<p>When you load all 12 channels into a NumPy array and normalise them together, you’re treating a water vapour image and a visible image as the same kind of thing. They’re not. They have different physical units, different dynamic ranges, different noise characteristics, and different relationships to what you’re trying to detect.</p>
+
+<div class="callout">
+<strong>The first lesson: know your data before you touch your model.</strong>
+</div>
+
+<h2 id="dataset-high-rate-seviri-level-15-image-data---msg---0-degree">Dataset: High Rate SEVIRI Level 1.5 Image Data - MSG - 0 degree</h2>
+
+<blockquote>
+  <p><em>“The Spinning Enhanced Visible and InfraRed Imager (SEVIRI) is MSG’s primary instrument and has the capacity to observe the Earth in 12 spectral channels. Eight of the channels are in the thermal infrared, providing, among other information, permanent data about the temperatures of clouds, land and sea surfaces. One of the channels is called the High Resolution Visible (HRV) channel, and has a sampling distance at nadir of 1km, as opposed to the 3km resolution of the other visible channels.</em></p>
+
+  <p><em>Using channels that absorb ozone, water vapour and carbon dioxide, MSG satellites allows meteorologists to analyse the characteristics of atmospheric air masses and reconstruct a three-dimensional view of the atmosphere. The 1km horizontal image resolution for the visible light spectral channel also helps weather forecasters in detecting and predicting the onset or end of severe weather.”</em></p>
+
+  <p>— EUMETSAT</p>
+</blockquote>
+
+<h2 id="the-projection-problem">The projection problem</h2>
+
+<figure>
+  <img src="/assets/05-geostationary-sat-ani.webp" class="small center" />
+  <figcaption>https://science.nasa.gov/learn/basics-of-space-flight/chapter5-1/</figcaption>
+</figure>
+
+<p>Satellite pixels aren’t on a regular lat/lon grid. SEVIRI uses geostationary projection the satellite sits fixed above the equator at 35,786 km altitude, constantly viewing the same hemisphere. Pixels near the edge of Earth’s visible disk are massively stretched compared to pixels directly below the satellite. A nominal 3km pixel over Germany might span 6-8km on the ground near northern Scandinavia due to this viewing angle.This matters because comparing satellite data with ground stations or combining multiple satellite sources requires reprojecting everything to a common coordinate system first. You can’t just overlay arrays and assume pixels align they won’t.</p>
+
+<h2 id="what-this-means-for-ml">What this means for ML</h2>
+
+<p>Three practical consequences that will affect every model you build:</p>
+<ol>
+  <li>Spatial autocorrelation breaks random splits. A fog bank doesn’t affect a single pixel it spans thousands of adjacent pixels. Random train/test splitting means your validation set contains pixels almost identical to training pixels just 3km away. Your metrics will look great, but your model hasn’t learned to generalize. You need spatial or temporal splits instead.</li>
+  <li>Channel statistics have physical meaning. A thermal infrared channel measuring brightness temperature ranges from 210K (cold cloud tops) to 310K (warm surfaces). A visible reflectance channel goes from 0 to 1.2. Normalizing these together destroys their physical interpretation and creates pathological gradients. Each channel needs separate standardization using climatological statistics, not batch statistics.</li>
+  <li>Missing data is structured, not random. Clouds block the view of fog beneath them. Scan line failures create systematic gaps. Sun glint contaminates ocean pixels. These aren’t random missing values you can drop or impute they have spatial and temporal patterns your model must handle explicitly, either through masking or by learning to recognize unreliable pixels.</li>
+</ol>
+
+<hr />
+
+<h2 id="tomorrow">Tomorrow</h2>
+
+<p>In Day 2 we actually get our hands on data engineering: I’ll walk through the design choices of the ETL pipeline.</p>
+
+  </div>
+
+  <div class="post-nav">
+    <span></span>
+    
+    <a href="/blog/2026/02/19/eo-ml-day-02-getting-data/">Step 2 — Getting Data: EUMETSAT, Copernicus & DWD →</a>
+    
+  </div>
+</article>
+
+</main>
+<footer>&copy; 2026 Berke Şentürk</footer>
+</body>
+</html>
