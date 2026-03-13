@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Step 2 — Getting Data: EUMETSAT"
+title: "Data Retrieval Strategy: ETL Pipeline Design"
 date: 2026-02-19
 series: "ML for Earth Observation"
 categories: [earth-observation, data-engineering, python]
@@ -10,9 +10,9 @@ skills: [EUMETSAT Data Store, Microservices Design, ETL Pipelines]
 github: https://github.com/berkesenturk/SatelliteETL
 runtime: 1-5 minutes depending on download speed
 data_source: EUMETSAT Data Store (free)
-prev_post: "Step 1 — What Is a Satellite Image, Really?"
+prev_post: "Data: Meteosat SEVIRI - Overview"
 prev_post_url: /blog/2026/02/18/eo-ml-day-01-what-is-a-satellite-image/
-next_post: "Step 3 — Reading netCDF and HDF5 with xarray"
+next_post: ""
 next_post_url: /blog/2026/02/20/eo-ml-day-03-xarray/
 image: /assets/logo.png
 ---
@@ -171,4 +171,4 @@ This technology stack provides a robust, scalable, and maintainable solution for
 
 ## What comes next?
 
-This is the raw material for everything in Weeks 2–4. Tomorrow in Day 3 we open it up and actually look at it with xarray.
+In the next step, we will show the results.

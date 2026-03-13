@@ -1,5 +1,4 @@
-# Personal Blog — GitHub Pages
-
+# Personal Blog 
 This repository powers my personal blog and portfolio.
 
 ## Run locally

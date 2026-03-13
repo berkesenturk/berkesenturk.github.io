@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Step 1 — What Is a Satellite Image, Really?"
+title: "Data: Meteosat SEVIRI - Overview"
 date: 2026-02-18
 series: "ML for Earth Observation"
 categories: [earth-observation, remote-sensing, fundamentals]
@@ -10,7 +10,7 @@ skills: [Remote Sensing fundamentals, data exploration]
 # github: https://github.com/berkesenturk/eo-ml-30days/blob/main/day01_what_is_a_satellite_image.ipynb
 # runtime: 5 minutes (no GPU needed)
 data_source: EUMETSAT SEVIRI sample scene (free registration)
-next_post: "Step 2 — Getting Data: EUMETSAT, Copernicus & DWD"
+next_post: "Data Retrieval Strategy: ETL Pipeline Design"
 next_post_url: /blog/2026/02/19/eo-ml-day-02-getting-data/
 image: /assets/logo.png
 ---
@@ -68,6 +68,6 @@ Three practical consequences that will affect every model you build:
 
 ---
 
-## Tomorrow
+## Next Step
 
-In Day 2 we actually get our hands on data engineering: I'll walk through the design choices of the ETL pipeline.
+In the second 2 we actually get our hands on data engineering: I'll walk through the design choices of the ETL pipeline.

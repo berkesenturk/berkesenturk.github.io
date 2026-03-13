@@ -7,7 +7,7 @@ categories: [earth-observation, data-engineering, machine-learning, journaling]
 description: "An engineering journal building production level ML systems on satellite data, from raw netCDF files to deployed cloud hole detectors. Full roadmap inside."
 read_time: 5
 skills: ["data engineering project planning"]
-next_post: "Step 1 — What Is a Satellite Image, Really?"
+next_post: "Step 1: What Is a Satellite Image, Really?"
 next_post_url: /blog/2026/02/18/eo-ml-day-01-what-is-a-satellite-image/
 image: /assets/logo.png
 ---
@@ -39,11 +39,6 @@ Before any model, you need to understand what you're working with. Most DS cours
 |-----|-------|
 | 1 | Data: Meteosat SEVIRI - Overview  |
 | 2 | Data Retrieval Strategy: ETL Pipeline Design |
-| 3 | ETL Pipeline #1: API Poller, messaging service |
-| 4 | ETL Pipeline #2: Downloader Service |
-| 5 | ETL Pipeline #3: Processor Service (transforming data) |
-| 6 | ETL Pipeline #4:  |
-| 7 | Stage 1 recap: the data pipeline we built, what surprised me |
 
 ### Stage 2 — Will come soon!
 
